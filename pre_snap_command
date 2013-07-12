@@ -1,0 +1,104 @@
+#!/bin/sh
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin"
+
+IS_MYSQL=$1
+
+#Use a uncommon sleep time, because it uses PS to check if lock is done (maybe we can change it in future)
+#In this number of seconds, entire system will be unable to access the disk, use a small time here
+#Calculate this time based on time your system take to take a snapshot, it usually a good idea to use
+#values smaller than 30 seconds
+FS_LOCK_MAX_SECONDS=28
+
+#Use any sleep time (the maximum time you allow to hold the DB waiting for a lock)
+DB_LOCK_WAIT_MAX_SECONDS=30
+
+function showdate {
+        echo -n `date +'%Y%m%d %H:%M:%S'`"   "
+}
+
+showdate; hostname
+showdate; echo "Running pre-snapshot tasks"
+
+if [ "$IS_MYSQL" = "1" ]; then
+        echo -n "   "; showdate; echo "Locking mysql tables";
+        rm -f /tmp/pre_snap.$$
+
+        touch /tmp/pre_snap_mysql_lock.$$
+        echo "
+                PATH=\"/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin\"
+
+                echo \$\$ > /tmp/pre_snap_mysql.pid
+        echo \"
+                FLUSH TABLES WITH READ LOCK;
+                select '_Locked_';
+                select sleep(600); \" | exec mysql -n &> /tmp/pre_snap_mysql_lock.$$
+        " > /tmp/pre_snap.$$
+        chmod 755 /tmp/pre_snap.$$
+
+        echo "
+                PATH=\"/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin\"
+                while [ 1 = 1 ]; do
+                        cat /tmp/pre_snap_mysql_lock.$$ | grep _Locked_ &> /dev/null && exit 0
+                        sleep 0.5
+                done;
+        " >> /tmp/pre_snap_check.$$
+        chmod 755 /tmp/pre_snap_check.$$
+
+        LOCK_OK=0
+        TRY=0
+        while [ $LOCK_OK = 0 ]; do
+                let TRY=$TRY+1;
+                echo -n "   "; showdate; echo "Trying to lock ($TRY)";
+                nohup /tmp/pre_snap.$$ &> /dev/null &
+                BG_PID=$!
+
+                        LOCK_TABLES=`timeout $DB_LOCK_WAIT_MAX_SECONDS /tmp/pre_snap_check.$$ && echo -n "OK" || echo -n "FAIL"`
+
+                if [ "$LOCK_TABLES"  = "OK" ]; then
+                        echo -n "   "; showdate; echo "Tables locked for 10 min";
+                        LOCK_OK=1
+                else
+                        echo -n "   "; showdate; echo "Lock operation timed out";
+                        pkill -P $BG_PID;
+                        echo -n "   "; showdate; echo "Mysql lock process killed";
+                        echo -n "   "; showdate; echo "Waiting 1 min to try again";
+                        sleep 60
+                fi;
+        done;
+fi;
+
+echo -n "   "; showdate; echo "Sync disks";
+sync
+
+echo "PATH=\"/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin\"" >/tmp/pre_snap_lock.$$
+
+for FS in `mount | grep ext | awk '{print $3}'`; do
+        echo -n "   "; showdate; echo "Scripting lock of filesystem at $FS";
+        echo "fsfreeze -f $FS" >> /tmp/pre_snap_lock.$$
+done;
+
+echo "
+sleep 1;
+sleep $FS_LOCK_MAX_SECONDS" >> /tmp/pre_snap_lock.$$
+
+for FS in `mount | grep ext | awk '{print $3}'`; do
+        echo -n "   "; showdate; echo "Scripting unlock of filesystem at $FS";
+        echo "fsfreeze -u $FS" >> /tmp/pre_snap_lock.$$
+done;
+
+echo -n "   "; showdate; echo "Starting lock script";
+chmod 755 /tmp/pre_snap_lock.$$
+
+sync
+
+#Read file to ensure it will be on OS memory cache
+cat /tmp/pre_snap_lock.$$ > /dev/null
+
+nohup /tmp/pre_snap_lock.$$ &> /dev/null &
+
+while [ 1 = 1 ]; do
+        ps aux | grep "sleep $FS_LOCK_MAX_SECONDS" | grep -v grep > /dev/null && echo -n "   " && showdate && echo "ALL FS locked for ${FS_LOCK_MAX_SECONDS}s" && break;
+        sleep 0.5
+done;
+
+echo -n "   "; showdate; echo "@@@SNAP_GO@@@"
