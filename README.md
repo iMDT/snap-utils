@@ -48,3 +48,15 @@ You can request any feature for us, we can send a quote for you.
 For that, send us a contact on http://www.imdt.com.br/
 
 Enjoy it.
+
+
+Install / Update
+================
+
+     mkdir -p /APP/scripts/;
+     cd /APP/scripts/;
+     rm -f pre_snap_command pos_snap_command ;
+     wget https://raw.github.com/iMDT/snap-utils/master/pre_snap_command ; 
+     wget https://raw.github.com/iMDT/snap-utils/master/pos_snap_command; 
+     chmod 755 pre_snap_command pos_snap_command ;
+     
