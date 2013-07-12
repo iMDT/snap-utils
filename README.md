@@ -31,8 +31,8 @@ The proposed usage is running a backup tool of your choice on DOM0 of virtual ma
 This backup tool must call:
 
       /APP/scripts/pre_snap_command [is_mysql]
-      #If above command outputs "@@@SNAP_GO@@@", take a snapshot
-      /APP/scripts/pos_snap_command
+      #If above command outputs "@@@SNAP_GO@@@", take a snapshot from outside
+      /APP/scripts/pos_snap_command #Call this using a non-fs based method, such xinet.d script, ssh will not work, because it access the disk
       
 Example:
 
