@@ -10,11 +10,12 @@ Linux LVM Snapshot utils
 This very simple set of scripts can be used as base scripts for your backup strategy.
 
 What we learned is that for consistent LVM snapshots you need to:
-      * If it's a mysql server, FLUSH ALL TABLES WITH READ LOCK
-      * Sync disk
-      * FSFREEZE all filesystems
-      * Take snapshot of entire VM disk (can be done at some RAID controllers also)
-      * UNFREEZE all filesystems
+
+      *   If it's a mysql server, FLUSH ALL TABLES WITH READ LOCK
+      *   Sync disk
+      *   FSFREEZE all filesystems
+      *   Take snapshot of entire VM disk (can be done at some RAID controllers also)
+      *   UNFREEZE all filesystems
 
 This script take of the steps above with a predefined timeout, avoiding whole system locks. 
 
