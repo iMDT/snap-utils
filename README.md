@@ -9,20 +9,16 @@ Linux LVM Snapshot utils
 
 This very simple set of scripts can be used as base scripts for your backup strategy.
 
-For consistent LVM snapshots you need to:
-    * If it's a mysql server, FLUSH ALL TABLES WITH READ LOCK
-    * Sync disk
-    * FSFREEZE all filesystems
-    * Take snapshot of disk (in our case it's done on DOM0 of Xen)
-    * UNFREEZE all filesystems
+What we learned is that for consistent LVM snapshots you need to:
+      * If it's a mysql server, FLUSH ALL TABLES WITH READ LOCK
+      * Sync disk
+      * FSFREEZE all filesystems
+      * Take snapshot of entire VM disk (can be done at some RAID controllers also)
+      * UNFREEZE all filesystems
 
-This script take care of doing all of these operations in a predefined amount of maximum time.
+This script take of the steps above with a predefined timeout, avoiding whole system locks. 
 
-It means that your backup script will not put the database on "a waiting forever" state.
-
-Also, the FSFREEZE is very dangerous, as it freezes all the systems, for that, a timeout is used. 
-
-If the main backup process doesn't call the pos_snap_command, it will unfreeze after specified time.
+FSFREEZE command is very dangerous, because it put on hold all processes that try to hit disk. It's why we included a timeout for the unlock operation. If the pos_snapshot command is not called after a predefined timeout, it's called automatically by system.
 
 usage
 =====
