@@ -40,4 +40,11 @@ Example:
      /APP/scripts/pre_snap_command 0 #for a non-mysql
      
 
+Feature-requests
+================
+
+You can request any feature for us, we can send a quote for you.
+
+For that, send us a contact on http://www.imdt.com.br/
+
 Enjoy it.
