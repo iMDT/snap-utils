@@ -93,9 +93,6 @@ sync
 
 #Read file to ensure it will be on OS memory cache
 cat /tmp/pre_snap_lock.$$ > /dev/null
-#Call killall to ensure it will load al libraries and binary and not hit disk
-killall unganzabizaza123456 &> /dev/null
-
 nohup /tmp/pre_snap_lock.$$ &> /dev/null &
 
 while [ 1 = 1 ]; do
