@@ -31,7 +31,7 @@ The proposed usage is running a backup tool of your choice on DOM0 of virtual ma
 This backup tool must call:
 
       /APP/scripts/pre_snap_command
-      #Take snapshot here
+      #If above command outputs "@@@SNAP_GO@@@", take a snapshot
       /APP/scripts/pos_snap_command
 
 Enjoy it.
