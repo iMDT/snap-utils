@@ -30,8 +30,14 @@ The proposed usage is running a backup tool of your choice on DOM0 of virtual ma
 
 This backup tool must call:
 
-      /APP/scripts/pre_snap_command
+      /APP/scripts/pre_snap_command [is_mysql]
       #If above command outputs "@@@SNAP_GO@@@", take a snapshot
       /APP/scripts/pos_snap_command
+      
+Example:
+
+     /APP/scripts/pre_snap_command 1 #for a mysql
+     /APP/scripts/pre_snap_command 0 #for a non-mysql
+     
 
 Enjoy it.
