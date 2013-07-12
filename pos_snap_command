@@ -1,0 +1,12 @@
+#!/bin/sh
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin"
+
+killall sleep &> /dev/null
+rm -f /tmp/pre_snap.*  &> /dev/null
+rm -f /tmp/pre_snap_check.*  &> /dev/null
+rm -f /tmp/pre_snap_mysql_lock.*  &> /dev/null
+rm -f /tmp/pre_snap_lock.*  &> /dev/null
+if [ -e /tmp/pre_snap_mysql.pid ]; then
+        pkill -P `cat /tmp/pre_snap_mysql.pid` &> /dev/null
+fi;
+rm -f /tmp/pre_snap_mysql.pid &> /dev/null
