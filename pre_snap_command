@@ -6,8 +6,9 @@ IS_MYSQL=$1
 #Use a uncommon sleep time, because it uses PS to check if lock is done (maybe we can change it in future)
 #In this number of seconds, entire system will be unable to access the disk, use a small time here
 #Calculate this time based on time your system take to take a snapshot, it usually a good idea to use
-#values smaller than 5 seconds
-FS_LOCK_MAX_SECONDS=4
+#values smaller than 30 seconds and greater than 20 seconds
+
+FS_LOCK_MAX_SECONDS=28
 
 #Use any sleep time (the maximum time you allow to hold the DB waiting for a lock)
 DB_LOCK_WAIT_MAX_SECONDS=30
